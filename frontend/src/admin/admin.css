@@ -220,6 +220,41 @@ input:checked + .toggle-slider:before {
   font: inherit;
 }
 
+.admin-filter-toolbar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 0.65rem;
+  align-items: center;
+  padding: 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.admin-filter-toolbar .form-input {
+  width: 100%;
+  min-width: 0;
+  height: var(--control-height);
+  padding: 0 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.expense-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 2fr) repeat(2, minmax(130px, 1fr)) auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.expense-form .form-input {
+  width: 100%;
+  min-width: 0;
+}
+
 .report-chart-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -254,10 +289,18 @@ input:checked + .toggle-slider:before {
   .report-chart-grid {
     grid-template-columns: 1fr;
   }
+
+  .expense-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 520px) {
   .menu-filter-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .expense-form {
     grid-template-columns: 1fr;
   }
 }

@@ -37,7 +37,7 @@ export default function InvestmentHistory() {
       statusFilter === 'ALL' || inv.status.toUpperCase() === statusFilter.toUpperCase();
     const matchesSearch =
       !searchTerm ||
-      inv.restaurant_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `investment ${inv.id}`.includes(searchTerm.toLowerCase()) ||
       (inv.notes && inv.notes.toLowerCase().includes(searchTerm.toLowerCase()));
     return matchesStatus && matchesSearch;
   });
@@ -50,7 +50,7 @@ export default function InvestmentHistory() {
             📜 Complete Investment History
           </h2>
           <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-            Historical record of your equity and debt venture investments
+            Historical record of your investments and recorded returns
           </p>
         </div>
       </div>
@@ -61,7 +61,7 @@ export default function InvestmentHistory() {
           type="text"
           className="menu-search-input"
           style={{ maxWidth: '320px' }}
-          placeholder="🔍 Search venture by name..."
+          placeholder="🔍 Search investments or notes..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -121,7 +121,7 @@ export default function InvestmentHistory() {
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                         <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text)' }}>
-                          {inv.restaurant_name}
+                          Investment #{inv.id}
                         </h3>
                         <span className={`profile-badge ${inv.status === 'ACTIVE' ? 'badge-active' : 'badge-inactive'}`}>
                           {inv.status}

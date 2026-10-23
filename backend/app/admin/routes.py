@@ -1,6 +1,7 @@
 from __future__ import annotations
+from datetime import date
 from typing import List, Optional
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database.connection import get_db
@@ -22,6 +23,11 @@ from app.admin.schemas import (
     MenuItemUpdateRequest,
     SalesReportResponse,
     InvestmentReportResponse,
+    ExpenseCreateRequest,
+    ExpenseResponse,
+    ProfitDistributionRequest,
+    ProfitDistributionPreview,
+    ProfitDistributionResponse,
 )
 from app.investor.schemas import TransactionResponse
 from app.admin import admin_controller as controller
@@ -137,6 +143,77 @@ def record_transaction(
     current_user: User = Depends(require_role("ADMIN")),
 ):
     return controller.record_transaction(db=db, investment_id=investment_id, request=request)
+
+
+# --- Expenses and profit distributions ---
+@router.get(
+    "/expenses",
+    response_model=List[ExpenseResponse],
+    summary="List expenses, optionally filtered by date range",
+)
+def list_expenses(
+    start_date: Optional[date] = Query(default=None),
+    end_date: Optional[date] = Query(default=None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("ADMIN")),
+):
+    if start_date and end_date and end_date < start_date:
+        raise HTTPException(status_code=400, detail="End date must be on or after start date.")
+    return controller.list_expenses(db=db, start_date=start_date, end_date=end_date)
+
+
+@router.post(
+    "/expenses",
+    response_model=ExpenseResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Record a restaurant expense",
+)
+def create_expense(
+    request: ExpenseCreateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("ADMIN")),
+):
+    return controller.create_expense(db=db, request=request)
+
+
+@router.delete(
+    "/expenses/{expense_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete an expense entry",
+)
+def delete_expense(
+    expense_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("ADMIN")),
+):
+    controller.delete_expense(db=db, expense_id=expense_id)
+
+
+@router.post(
+    "/profit-distributions/preview",
+    response_model=ProfitDistributionPreview,
+    summary="Preview estimated profit and investor ownership allocations",
+)
+def preview_profit_distribution(
+    request: ProfitDistributionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("ADMIN")),
+):
+    return controller.preview_profit_distribution(db=db, request=request)
+
+
+@router.post(
+    "/profit-distributions",
+    response_model=ProfitDistributionResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Distribute period profit to investors based on ownership",
+)
+def distribute_profit(
+    request: ProfitDistributionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("ADMIN")),
+):
+    return controller.distribute_profit(db=db, request=request)
 
 
 # --- Menu Management ---

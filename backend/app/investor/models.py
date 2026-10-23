@@ -28,7 +28,8 @@ class Investment(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     investor_id = Column(Integer, ForeignKey("investors.id", ondelete="CASCADE"), nullable=False, index=True)
-    restaurant_name = Column(String(255), nullable=False)
+    # Retained for existing database compatibility; restaurant names are no longer user-facing.
+    restaurant_name = Column(String(255), nullable=True, default="")
     investment_amount = Column(Float, nullable=False)
     investment_date = Column(DateTime, default=datetime.utcnow, nullable=False)
     status = Column(String(50), default="ACTIVE", nullable=False)  # ACTIVE, COMPLETED, CANCELLED

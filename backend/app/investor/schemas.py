@@ -21,7 +21,6 @@ class TransactionResponse(ORMBase):
 class InvestmentResponse(ORMBase):
     id: int
     investor_id: int
-    restaurant_name: str
     investment_amount: float
     investment_date: datetime
     status: str
@@ -36,7 +35,6 @@ class InvestorProfileResponse(BaseModel):
     email: str
     phone: Optional[str] = None
     address: Optional[str] = None
-    status: Optional[str] = "ACTIVE"
     created_at: Optional[datetime] = None
 
 

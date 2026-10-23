@@ -8,17 +8,29 @@ import {
 } from '../services/adminApi';
 import '../admin.css';
 
+function getLocalDateKey(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
 export default function InvestmentManagement() {
   const [investments, setInvestments] = useState([]);
   const [investors, setInvestors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [investorFilter, setInvestorFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   // Modals
   const [showAddInvModal, setShowAddInvModal] = useState(false);
   const [addInvForm, setAddInvForm] = useState({
     investor_id: '',
-    restaurant_name: '',
     investment_amount: '',
     status: 'ACTIVE',
     notes: '',
@@ -66,7 +78,6 @@ export default function InvestmentManagement() {
     try {
       const payload = {
         investor_id: Number(addInvForm.investor_id),
-        restaurant_name: addInvForm.restaurant_name.trim(),
         investment_amount: Number(addInvForm.investment_amount),
         status: addInvForm.status,
         notes: addInvForm.notes.trim() || null,
@@ -75,7 +86,6 @@ export default function InvestmentManagement() {
       setShowAddInvModal(false);
       setAddInvForm({
         investor_id: investors[0]?.id || '',
-        restaurant_name: '',
         investment_amount: '',
         status: 'ACTIVE',
         notes: '',
@@ -121,6 +131,22 @@ export default function InvestmentManagement() {
     }
   };
 
+  const filteredInvestments = investments.filter((investment) => {
+    const search = searchTerm.trim().toLowerCase();
+    const matchesSearch = !search
+      || String(investment.investor_name || '').toLowerCase().includes(search)
+      || (investment.notes || '').toLowerCase().includes(search);
+    const matchesInvestor = investorFilter === 'ALL'
+      || String(investment.investor_id) === investorFilter;
+    const matchesStatus = statusFilter === 'ALL' || investment.status === statusFilter;
+    const investmentDate = getLocalDateKey(investment.investment_date);
+    return matchesSearch
+      && matchesInvestor
+      && matchesStatus
+      && (!startDate || (investmentDate && investmentDate >= startDate))
+      && (!endDate || (investmentDate && investmentDate <= endDate));
+  });
+
   return (
     <div className="page-container admin-container">
       <div className="admin-header-row">
@@ -142,6 +168,68 @@ export default function InvestmentManagement() {
 
       {error && <div className="billing-alert billing-alert-error">⚠️ {error}</div>}
 
+      <div className="admin-filter-toolbar">
+        <input
+          type="search"
+          className="form-input"
+          placeholder="Search investor or notes"
+          aria-label="Search investments"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <select
+          className="form-input"
+          aria-label="Filter investments by investor"
+          value={investorFilter}
+          onChange={(e) => setInvestorFilter(e.target.value)}
+        >
+          <option value="ALL">All investors</option>
+          {investors.map((investor) => (
+            <option key={investor.id} value={investor.id}>{investor.name}</option>
+          ))}
+        </select>
+        <select
+          className="form-input"
+          aria-label="Filter investments by status"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="ALL">All statuses</option>
+          <option value="ACTIVE">Active</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="CANCELLED">Cancelled</option>
+        </select>
+        <input
+          type="date"
+          className="form-input"
+          aria-label="Investments from date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+        />
+        <input
+          type="date"
+          className="form-input"
+          aria-label="Investments to date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+        />
+        {(searchTerm || investorFilter !== 'ALL' || statusFilter !== 'ALL' || startDate || endDate) && (
+          <button
+            type="button"
+            className="btn-view-order"
+            onClick={() => {
+              setSearchTerm('');
+              setInvestorFilter('ALL');
+              setStatusFilter('ALL');
+              setStartDate('');
+              setEndDate('');
+            }}
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
+
       <div className="card-section">
         {loading ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
@@ -152,11 +240,14 @@ export default function InvestmentManagement() {
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
             No investments recorded yet.
           </div>
+        ) : filteredInvestments.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
+            No investments matched the selected filters.
+          </div>
         ) : (
           <table className="data-table">
             <thead>
               <tr>
-                <th>Venture / Restaurant</th>
                 <th>Investor</th>
                 <th>Capital Invested</th>
                 <th>Date</th>
@@ -166,14 +257,11 @@ export default function InvestmentManagement() {
               </tr>
             </thead>
             <tbody>
-              {investments.map((inv) => (
+              {filteredInvestments.map((inv) => (
                 <tr key={inv.id}>
                   <td>
-                    <strong>{inv.restaurant_name}</strong>
-                    {inv.notes && <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{inv.notes}</div>}
-                  </td>
-                  <td>
                     <strong>{inv.investor_name}</strong>
+                    {inv.notes && <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{inv.notes}</div>}
                   </td>
                   <td style={{ color: 'var(--color-text)', fontWeight: 700 }}>
                     ₹{Number(inv.investment_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
@@ -255,19 +343,6 @@ export default function InvestmentManagement() {
                       </option>
                     ))}
                   </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="inv-restaurant">Venture / Restaurant Name *</label>
-                  <input
-                    id="inv-restaurant"
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g. Royal Spice Kitchen (Branch 2)"
-                    value={addInvForm.restaurant_name}
-                    onChange={(e) => setAddInvForm({ ...addInvForm, restaurant_name: e.target.value })}
-                    required
-                  />
                 </div>
 
                 <div className="form-group">
@@ -357,7 +432,7 @@ export default function InvestmentManagement() {
                 )}
 
                 <div style={{ background: 'var(--color-bg)', padding: '0.85rem', borderRadius: 'var(--radius-sm)', fontSize: '0.88rem' }}>
-                  <strong>Investment:</strong> {activeTxInvestment.restaurant_name} <br />
+                  <strong>Investment:</strong> #{activeTxInvestment.id} <br />
                   <strong>Investor:</strong> {activeTxInvestment.investor_name}
                 </div>
 

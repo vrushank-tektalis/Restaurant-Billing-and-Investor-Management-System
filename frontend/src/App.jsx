@@ -16,6 +16,7 @@ import AdminDashboard from './admin/pages/AdminDashboard';
 import MenuManagement from './admin/pages/MenuManagement';
 import InvestorManagement from './admin/pages/InvestorManagement';
 import InvestmentManagement from './admin/pages/InvestmentManagement';
+import ProfitDistribution from './admin/pages/ProfitDistribution';
 
 const Reports = lazy(() => import('./admin/pages/Reports'));
 
@@ -23,6 +24,7 @@ import './App.css';
 
 export default function App() {
   const { user, role, isAuthenticated, loading, logout } = useAuth();
+  const displayRole = role === 'ADMIN' ? 'Restaurant Owner' : role;
   const [currentView, setCurrentView] = useState('dashboard');
   const [accountOpen, setAccountOpen] = useState(false);
   const accountMenuRef = useRef(null);
@@ -92,7 +94,7 @@ export default function App() {
               color: 'var(--color-text)',
             }}
           >
-            {role}
+            {displayRole}
           </span>
         </div>
 
@@ -128,6 +130,13 @@ export default function App() {
                 onClick={() => setCurrentView('investments')}
               >
                 💼 Investments
+              </button>
+              <button
+                type="button"
+                className={`nav-btn ${currentView === 'profit_distribution' ? 'active' : ''}`}
+                onClick={() => setCurrentView('profit_distribution')}
+              >
+                💸 Expenses &amp; Distributions
               </button>
               <button
                 type="button"
@@ -217,7 +226,7 @@ export default function App() {
               <div className="account-summary">
                 <strong>{user?.name || 'Account'}</strong>
                 <span>{user?.email}</span>
-                <span className="account-role">{role}</span>
+                <span className="account-role">{displayRole}</span>
               </div>
               <button
                 type="button"
@@ -250,6 +259,7 @@ export default function App() {
         {role === 'ADMIN' && currentView === 'menu' && <MenuManagement />}
         {role === 'ADMIN' && currentView === 'investors' && <InvestorManagement />}
         {role === 'ADMIN' && currentView === 'investments' && <InvestmentManagement />}
+        {role === 'ADMIN' && currentView === 'profit_distribution' && <ProfitDistribution />}
         {role === 'ADMIN' && currentView === 'reports' && (
           <Suspense fallback={<div className="page-container">Loading reports...</div>}>
             <Reports />

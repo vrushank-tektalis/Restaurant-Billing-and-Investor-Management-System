@@ -27,11 +27,10 @@ export default function InvestorManagement() {
     name: '',
     phone: '',
     address: '',
-    status: 'ACTIVE',
-    is_active: true,
     new_password: '',
   });
 
+  const [searchTerm, setSearchTerm] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [modalError, setModalError] = useState(null);
 
@@ -52,14 +51,18 @@ export default function InvestorManagement() {
     loadInvestors();
   }, []);
 
+  const filteredInvestors = investors.filter((investor) => {
+    const search = searchTerm.trim().toLowerCase();
+    return !search || [investor.name, investor.email, investor.phone]
+      .some((value) => value?.toLowerCase().includes(search));
+  });
+
   const handleOpenEdit = (inv) => {
     setEditingInvestor(inv);
     setEditForm({
       name: inv.name,
       phone: inv.phone || '',
       address: inv.address || '',
-      status: inv.status,
-      is_active: inv.is_active,
       new_password: '',
     });
     setModalError(null);
@@ -90,8 +93,6 @@ export default function InvestorManagement() {
       name: editForm.name.trim(),
       phone: editForm.phone.trim(),
       address: editForm.address.trim(),
-      status: editForm.status,
-      is_active: Boolean(editForm.is_active),
     };
     if (editForm.new_password.trim()) {
       payload.new_password = editForm.new_password.trim();
@@ -115,7 +116,7 @@ export default function InvestorManagement() {
       <div className="admin-header-row">
         <div className="admin-header-title">
           <h2>👥 Investor Profiles &amp; Accounts</h2>
-          <p>Register new investors, manage account access, and update profiles</p>
+          <p>Register investors and keep their contact details up to date</p>
         </div>
         <button
           type="button"
@@ -131,6 +132,22 @@ export default function InvestorManagement() {
 
       {error && <div className="billing-alert billing-alert-error">⚠️ {error}</div>}
 
+      <div className="admin-filter-toolbar">
+        <input
+          type="search"
+          className="form-input"
+          placeholder="Search investor name, email, or phone"
+          aria-label="Search investors"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        {searchTerm && (
+          <button type="button" className="btn-view-order" onClick={() => setSearchTerm('')}>
+            Clear
+          </button>
+        )}
+      </div>
+
       <div className="card-section">
         {loading ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
@@ -141,20 +158,22 @@ export default function InvestorManagement() {
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
             No investors registered yet.
           </div>
+        ) : filteredInvestors.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
+            No investors match this search.
+          </div>
         ) : (
           <table className="data-table">
             <thead>
               <tr>
                 <th>Investor</th>
                 <th>Contact</th>
-                <th>Status</th>
-                <th>Login Access</th>
                 <th>Total Invested</th>
                 <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {investors.map((inv) => (
+              {filteredInvestors.map((inv) => (
                 <tr key={inv.id}>
                   <td>
                     <strong>{inv.name}</strong>
@@ -163,16 +182,6 @@ export default function InvestorManagement() {
                   <td>
                     <div>{inv.phone || '—'}</div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{inv.address || ''}</div>
-                  </td>
-                  <td>
-                    <span className={`profile-badge ${inv.status === 'ACTIVE' ? 'badge-active' : 'badge-inactive'}`}>
-                      {inv.status}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`profile-badge ${inv.is_active ? 'badge-active' : 'badge-inactive'}`}>
-                      {inv.is_active ? 'Active' : 'Disabled'}
-                    </span>
                   </td>
                   <td style={{ color: 'var(--color-accent-text)', fontWeight: 700 }}>
                     ₹{Number(inv.total_invested || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
@@ -356,33 +365,6 @@ export default function InvestorManagement() {
                     value={editForm.address}
                     onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
                   />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="edit-status">Investor Status</label>
-                  <select
-                    id="edit-status"
-                    className="form-input"
-                    value={editForm.status}
-                    onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                  >
-                    <option value="ACTIVE">ACTIVE</option>
-                    <option value="INACTIVE">INACTIVE</option>
-                  </select>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem' }}>
-                  <label className="toggle-switch">
-                    <input
-                      type="checkbox"
-                      checked={editForm.is_active}
-                      onChange={(e) => setEditForm({ ...editForm, is_active: e.target.checked })}
-                    />
-                    <span className="toggle-slider"></span>
-                  </label>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>
-                    Enable Login Account Access
-                  </span>
                 </div>
 
                 <div className="form-group" style={{ marginTop: '0.5rem' }}>

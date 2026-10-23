@@ -81,9 +81,6 @@ export default function InvestorDashboard({ onNavigate }) {
               {profile.address && <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>📍 {profile.address}</p>}
             </div>
           </div>
-          <span className={`profile-badge ${profile.status === 'ACTIVE' ? 'badge-active' : 'badge-inactive'}`}>
-            {profile.status}
-          </span>
         </div>
       )}
 
@@ -104,7 +101,7 @@ export default function InvestorDashboard({ onNavigate }) {
         <div className="stat-card">
           <span className="stat-title">Active Investments</span>
           <span className="stat-value" style={{ color: 'var(--color-accent-text)' }}>{summary?.active_investments_count || 0}</span>
-          <span className="stat-hint">Active ventures</span>
+          <span className="stat-hint">Currently active investments</span>
         </div>
       </div>
 
@@ -135,7 +132,7 @@ export default function InvestorDashboard({ onNavigate }) {
           <table className="data-table">
             <thead>
               <tr>
-                <th>Venture / Restaurant</th>
+                <th>Investment</th>
                 <th>Amount</th>
                 <th>Date</th>
                 <th>Status</th>
@@ -154,7 +151,7 @@ export default function InvestorDashboard({ onNavigate }) {
                 return (
                   <tr key={inv.id}>
                     <td>
-                      <strong>{inv.restaurant_name}</strong>
+                      <strong>Investment #{inv.id}</strong>
                       {inv.notes && <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{inv.notes}</p>}
                     </td>
                     <td>

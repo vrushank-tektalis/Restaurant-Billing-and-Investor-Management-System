@@ -6,13 +6,13 @@ This is a web app for managing restaurant bills and investor information.
 
 It has three types of users:
 
-- **Admin** manages the system.
+- **Admin** manages one restaurant's system data.
 - **Cashier** creates bills.
 - **Investor** checks their investment information.
 
 ## 2. Project objective
 
-The goal is to keep restaurant billing and investment information in one app. Users see different pages depending on their role.
+The goal is to keep restaurant billing and investment information in one app. Users see different pages depending on their role. Each installation is for a single restaurant; its admin is the owner/operator for that restaurant.
 
 ## 3. What the app can do
 
@@ -20,9 +20,10 @@ The goal is to keep restaurant billing and investment information in one app. Us
 
 - View the dashboard and reports.
 - Add and update menu items.
-- Manage investor accounts.
+- Register investors and update their contact details. Investor accounts are active by default.
 - Add and update investments.
 - Record investment returns or distributions.
+- Record expenses and distribute positive period profit according to each investor's ownership share.
 - Create bills and view billing history.
 
 ### Cashier
@@ -68,7 +69,7 @@ flowchart LR
 
 ## 6. Database
 
-The app has seven main tables:
+The app has nine main tables:
 
 | Table | What it stores |
 |---|---|
@@ -76,9 +77,11 @@ The app has seven main tables:
 | `menu_items` | Menu names, prices, availability, and stock. |
 | `orders` | Bill details and totals. |
 | `order_items` | Items included in each bill. |
-| `investors` | Investor contact and account status. |
+| `investors` | Investor contact details. |
 | `investments` | Investment details for each investor. |
 | `investment_transactions` | Returns or distributions for an investment. |
+| `expenses` | Restaurant expenses used to calculate period profit. |
+| `profit_distributions` | Date periods and totals for completed profit distributions. |
 
 ### Database diagram
 
@@ -131,12 +134,10 @@ erDiagram
         int user_id FK
         string phone
         string address
-        string status
     }
     INVESTMENTS {
         int id PK
         int investor_id FK
-        string restaurant_name
         float investment_amount
         string status
     }
@@ -147,9 +148,27 @@ erDiagram
         float amount
         datetime transaction_date
     }
+    EXPENSES {
+        int id PK
+        string description
+        float amount
+        date expense_date
+    }
+    PROFIT_DISTRIBUTIONS {
+        int id PK
+        date start_date
+        date end_date
+        float net_revenue
+        float total_expenses
+        float distributable_profit
+    }
 ```
 
 An order item keeps a copy of the menu item name and price. This helps keep old bills the same if the menu changes later.
+
+Bill numbers use `YYYY-MM-DD-001`; the counter starts at `001` again on each new day. Investor and investment lists, and sales history, include search/filter controls.
+
+Profit distribution uses the selected date range: estimated profit is sales revenue less recorded expenses. Each investor's ownership percentage is their total recorded investment divided by all recorded investment, and their profit share is that percentage of positive estimated profit. A date range can only be distributed once, and expenses in periods already distributed cannot be changed.
 
 ## 7. Main API addresses
 
@@ -165,6 +184,9 @@ The backend runs at `http://localhost:8000` during local development.
 | `GET /api/investor/profile` | View an investor profile. |
 | `GET /api/investor/investments` | View an investor's investments. |
 | `GET /api/investor/summary` | View an investor summary. |
+| `/api/admin/expenses` | Record and view restaurant expenses. |
+| `POST /api/admin/profit-distributions/preview` | Preview period profit and investor shares. |
+| `POST /api/admin/profit-distributions` | Record investor profit payouts for a period. |
 | `/api/admin/...` | Admin dashboard, menu, investor, investment, and report features. |
 
 The full API list is available at `http://localhost:8000/docs` when the backend is running.
@@ -211,7 +233,7 @@ cd backend
 python -m app.seed
 ```
 
-The seed command adds sample users, menu items, investments, and bills if the database is empty. **Do not use `python -m app.seed --reset` if you need to keep existing data.** It deletes and recreates the app tables.
+The seed command deletes and recreates all application tables, then inserts sample users, menu items, investments, expenses, distributions, and bills. **Do not run it if you need to keep existing data.**
 
 ### Start the website
 

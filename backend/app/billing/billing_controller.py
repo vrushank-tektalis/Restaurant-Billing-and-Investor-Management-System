@@ -26,7 +26,7 @@ def create_order(db: Session, request: CreateOrderRequest, cashier_user_id: Opti
     Create a new order with items:
     1. Validates all menu items exist and are available
     2. Calculates subtotal, tax amount, and total amount
-    3. Generates a unique sequential bill number (e.g., BILL-20241022-0001)
+    3. Generates a unique daily sequential bill number (e.g., 2026-10-23-001)
     4. Persists the Order and OrderItem records
     """
     if not request.items:
@@ -109,19 +109,19 @@ def create_order(db: Session, request: CreateOrderRequest, cashier_user_id: Opti
     discount = max(0.0, float(request.discount))
     total_amount = round(max(0.0, subtotal - discount + tax_amount), 2)
 
-    # Generate sequential bill_number: BILL-YYYYMMDD-XXXX
+    # Generate a daily sequential bill number: YYYY-MM-DD-###
     now = datetime.now()
-    today_str = now.strftime("%Y%m%d")
-    prefix = f"BILL-{today_str}-"
+    today_str = now.strftime("%Y-%m-%d")
+    prefix = f"{today_str}-"
 
     today_orders_count = db.query(Order).filter(Order.bill_number.like(f"{prefix}%")).count()
     seq = today_orders_count + 1
-    bill_number = f"{prefix}{seq:04d}"
+    bill_number = f"{prefix}{seq:03d}"
 
     # Handle collision safety
     while db.query(Order).filter(Order.bill_number == bill_number).first():
         seq += 1
-        bill_number = f"{prefix}{seq:04d}"
+        bill_number = f"{prefix}{seq:03d}"
 
     # Create Order record
     new_order = Order(

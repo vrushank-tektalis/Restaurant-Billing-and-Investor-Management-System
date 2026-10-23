@@ -77,7 +77,7 @@ export default function InvestmentDetails() {
         {investments.length > 1 && (
           <div>
             <label htmlFor="inv-select" style={{ fontSize: '0.85rem', fontWeight: 600, marginRight: '0.5rem' }}>
-              Select Venture:
+              Select Investment:
             </label>
             <select
               id="inv-select"
@@ -88,7 +88,7 @@ export default function InvestmentDetails() {
             >
               {investments.map((inv) => (
                 <option key={inv.id} value={inv.id}>
-                  {inv.restaurant_name} (₹{Number(inv.investment_amount).toLocaleString('en-IN')})
+                  Investment #{inv.id} (₹{Number(inv.investment_amount).toLocaleString('en-IN')})
                 </option>
               ))}
             </select>
@@ -100,7 +100,7 @@ export default function InvestmentDetails() {
         <div className="card-section">
           <div className="section-header">
             <h3 className="section-title">
-              🏢 {selectedInvestment.restaurant_name}
+              Investment #{selectedInvestment.id}
             </h3>
             <span className={`profile-badge ${selectedInvestment.status === 'ACTIVE' ? 'badge-active' : 'badge-inactive'}`}>
               {selectedInvestment.status}

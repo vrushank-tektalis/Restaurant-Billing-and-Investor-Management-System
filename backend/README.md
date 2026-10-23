@@ -80,17 +80,13 @@ pip install -r requirements.txt
 ```
 
 ### 4. Seed Development Data
-Run this once on an empty database to create the demo accounts and sample records:
+Run this from the `backend/` directory to delete and replace all application data with demo accounts and sample records:
 ```bash
 python -m app.seed
 ```
-
-To replace all application data with the large sample dataset (1 admin, 2 cashiers,
-20 investors, 100 menu items, 60 investments, 300 investment transactions, and
-500 orders), explicitly reset first:
-```bash
-python -m app.seed --reset
-```
+Run this command from the `backend/` directory. If your terminal is already in
+`backend/app/`, you can also use `python seed.py`.
+**Warning:** every seed run drops and recreates all application tables. The `--reset` option is still accepted for compatibility but is no longer required.
 
 Demo admin login: `admin@restaurant.com` / `Admin@123`.
 

@@ -101,13 +101,13 @@ pip install -r requirements.txt
 python -m app.seed
 ```
 
-On an empty database, this creates development data:
+This command deletes and recreates all application tables before inserting the development data:
 - 23 users (1 admin, 2 cashiers, 20 investors)
 - 100 menu items across 5 categories
 - 20 investor profiles, 60 investments, and 300 investment transactions
 - 500 sample billing orders with order lines
 
-Use `python -m app.seed --reset` only when you intend to drop and replace all application tables and their data.
+**Warning:** every seed run replaces all application data. Do not run it against a database whose existing data you need to keep.
 
 ### 2d. Start the Backend Server
 

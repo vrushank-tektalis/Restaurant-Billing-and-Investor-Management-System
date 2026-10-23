@@ -71,6 +71,54 @@ export async function createAdminTransaction(investmentId, data) {
   return handleApiResponse(response);
 }
 
+// Expenses and profit distributions
+export async function fetchExpenses(startDate = '', endDate = '') {
+  const params = new URLSearchParams();
+  if (startDate) params.append('start_date', startDate);
+  if (endDate) params.append('end_date', endDate);
+  const query = params.toString() ? `?${params.toString()}` : '';
+  const response = await fetch(`${BASE_URL}/expenses${query}`, {
+    headers: authHeaders(),
+  });
+  return handleApiResponse(response);
+}
+
+export async function createExpense(data) {
+  const response = await fetch(`${BASE_URL}/expenses`, {
+    method: 'POST',
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(data),
+  });
+  return handleApiResponse(response);
+}
+
+export async function deleteExpense(id) {
+  const response = await fetch(`${BASE_URL}/expenses/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  if (response.status === 204) return null;
+  return handleApiResponse(response);
+}
+
+export async function previewProfitDistribution(data) {
+  const response = await fetch(`${BASE_URL}/profit-distributions/preview`, {
+    method: 'POST',
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(data),
+  });
+  return handleApiResponse(response);
+}
+
+export async function distributeProfit(data) {
+  const response = await fetch(`${BASE_URL}/profit-distributions`, {
+    method: 'POST',
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(data),
+  });
+  return handleApiResponse(response);
+}
+
 // Menu Items
 export async function fetchAdminMenu() {
   const response = await fetch(`${BASE_URL}/menu`, {

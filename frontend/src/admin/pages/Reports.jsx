@@ -353,7 +353,7 @@ export default function Reports() {
                     <tr key={inv.investor_id}>
                       <td><strong>{inv.name}</strong></td>
                       <td>{inv.email}</td>
-                      <td>{inv.investments_count} venture{inv.investments_count === 1 ? '' : 's'}</td>
+                      <td>{inv.investments_count} investment{inv.investments_count === 1 ? '' : 's'}</td>
                       <td style={{ color: 'var(--color-accent-text)', fontWeight: 700 }}>
                         ₹{Number(inv.total_invested).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </td>

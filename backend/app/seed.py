@@ -1,13 +1,14 @@
-"""Seed a deterministic development dataset.
-
-Run ``python -m app.seed`` on an empty database, or pass ``--reset`` to
-drop and recreate all application tables before seeding.
-"""
+"""Replace application data with the deterministic development dataset."""
 from __future__ import annotations
 
 import argparse
 import random
 from datetime import datetime, timedelta
+from pathlib import Path
+import sys
+
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.database.connection import Base, SessionLocal, engine
 import app.database.base  # Register all models with Base.metadata
@@ -58,35 +59,19 @@ MENU_GROUPS = {
     ],
 }
 
-RESTAURANT_NAMES = [
-    "Royal Spice Kitchen", "Spice and Curry Express", "Saffron Table",
-    "Cedar House Dining", "Monsoon Bistro", "Garden Tandoor",
-    "Copper Kettle Cafe", "Coastal Harvest", "Olive and Ember", "The Curry Room",
-]
-
-
-def seed_database(reset: bool = False) -> None:
-    if reset:
-        print("Dropping and recreating all application tables...")
-        Base.metadata.drop_all(bind=engine)
+def seed_database() -> None:
+    print("Dropping and recreating all application tables...")
+    Base.metadata.drop_all(bind=engine)
 
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        has_existing_data = any(
-            db.query(model).first() is not None
-            for model in (User, MenuItem, Order, Investor, Investment, InvestmentTransaction)
-        )
-        if has_existing_data:
-            print("Database already contains records. Use --reset to replace the development dataset.")
-            return
-
         rng = random.Random(20261022)
         now = datetime.utcnow()
 
         users = [
             User(
-                name="System Administrator",
+                name="Restaurant Owner",
                 email="admin@restaurant.com",
                 password_hash=hash_password("Admin@123"),
                 role="ADMIN",
@@ -125,7 +110,6 @@ def seed_database(reset: bool = False) -> None:
                 user_id=user.id,
                 phone=f"+91 {9000000000 + index}",
                 address=f"{20 + index}, Market Road, {cities[index % len(cities)]}",
-                status="INACTIVE" if index % 9 == 0 else "ACTIVE",
             )
             for index, user in enumerate(investor_users)
         ]
@@ -149,15 +133,13 @@ def seed_database(reset: bool = False) -> None:
 
         investments = []
         for investor_index, investor in enumerate(investors):
-            for venture_index in range(3):
-                restaurant = RESTAURANT_NAMES[(investor_index + venture_index) % len(RESTAURANT_NAMES)]
+            for investment_index in range(3):
                 investments.append(Investment(
                     investor_id=investor.id,
-                    restaurant_name=f"{restaurant} - Branch {venture_index + 1}",
-                    investment_amount=float(125000 + ((investor_index * 27100 + venture_index * 53000) % 875000)),
+                    investment_amount=float(125000 + ((investor_index * 27100 + investment_index * 53000) % 875000)),
                     investment_date=now - timedelta(days=rng.randint(200, 540)),
-                    status="COMPLETED" if venture_index == 2 else "ACTIVE",
-                    notes=f"Development portfolio entry {investor_index + 1}-{venture_index + 1}.",
+                    status="COMPLETED" if investment_index == 2 else "ACTIVE",
+                    notes=f"Development portfolio entry {investor_index + 1}-{investment_index + 1}.",
                 ))
         db.add_all(investments)
         db.flush()
@@ -178,6 +160,7 @@ def seed_database(reset: bool = False) -> None:
 
         cashier_users = [user for user in users if user.role == "CASHIER"]
         orders = []
+        daily_bill_counts = {}
         for order_index in range(500):
             order_date = now - timedelta(
                 days=rng.randint(0, 364),
@@ -203,8 +186,10 @@ def seed_database(reset: bool = False) -> None:
             subtotal = round(subtotal, 2)
             discount = round(subtotal * 0.05, 2) if order_index % 7 == 0 else 0.0
             tax_amount = round(subtotal * 0.05, 2)
+            bill_date = order_date.strftime("%Y-%m-%d")
+            daily_bill_counts[bill_date] = daily_bill_counts.get(bill_date, 0) + 1
             orders.append(Order(
-                bill_number=f"BILL-{order_date:%Y%m%d}-{order_index + 1:04d}",
+                bill_number=f"{bill_date}-{daily_bill_counts[bill_date]:03d}",
                 order_date=order_date,
                 subtotal=subtotal,
                 discount=discount,
@@ -235,14 +220,16 @@ def seed_database(reset: bool = False) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Create sample restaurant system data.")
+    parser = argparse.ArgumentParser(
+        description="Delete all application data and replace it with the sample dataset."
+    )
     parser.add_argument(
         "--reset",
         action="store_true",
-        help="Drop all application tables and replace their contents with the sample dataset.",
+        help="Accepted for compatibility; all seed runs reset the application tables.",
     )
-    args = parser.parse_args()
-    seed_database(reset=args.reset)
+    parser.parse_args()
+    seed_database()
 
 
 if __name__ == "__main__":

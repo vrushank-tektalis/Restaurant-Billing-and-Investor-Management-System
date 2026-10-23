@@ -45,8 +45,8 @@ export default function AdminDashboard({ onNavigate }) {
     <div className="page-container admin-container">
       <div className="admin-header-row">
         <div className="admin-header-title">
-          <h2>👑 Restaurant Administration</h2>
-          <p>Global oversight of restaurant sales, investors, capital, and operations</p>
+          <h2>👑 Restaurant Owner Dashboard</h2>
+          <p>Manage your restaurant’s sales, investors, menu, and operations</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {onNavigate && (
@@ -92,7 +92,7 @@ export default function AdminDashboard({ onNavigate }) {
           <span className="stat-value" style={{ color: 'var(--color-accent-text)' }}>
             ₹{Number(data?.total_investment_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </span>
-          <span className="stat-hint">Total equity &amp; venture funding</span>
+          <span className="stat-hint">Total investor capital</span>
         </div>
 
         <div className="stat-card">
@@ -177,7 +177,6 @@ export default function AdminDashboard({ onNavigate }) {
               <thead>
                 <tr>
                   <th>Investor</th>
-                  <th>Venture</th>
                   <th>Amount</th>
                   <th>Status</th>
                 </tr>
@@ -186,7 +185,6 @@ export default function AdminDashboard({ onNavigate }) {
                 {data.recent_investments.map((inv) => (
                   <tr key={inv.id}>
                     <td><strong>{inv.investor_name}</strong></td>
-                    <td>{inv.restaurant_name}</td>
                     <td style={{ color: 'var(--color-accent-text)', fontWeight: 700 }}>
                       ₹{Number(inv.investment_amount).toLocaleString('en-IN')}
                     </td>

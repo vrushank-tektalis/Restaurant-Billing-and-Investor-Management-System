@@ -1,7 +1,7 @@
 from __future__ import annotations
-from datetime import datetime
+from datetime import date, datetime
 from typing import List, Optional, Literal
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, model_validator
 
 from app.billing.schemas import OrderSummary
 from app.investor.schemas import TransactionResponse
@@ -15,7 +15,6 @@ class ORMBase(BaseModel):
 class AdminRecentInvestment(BaseModel):
     id: int
     investor_name: str
-    restaurant_name: str
     investment_amount: float
     investment_date: datetime
     status: str
@@ -38,8 +37,6 @@ class InvestorAdminResponse(BaseModel):
     email: str
     phone: Optional[str] = None
     address: Optional[str] = None
-    status: str
-    is_active: bool
     created_at: datetime
     total_invested: float = 0.0
 
@@ -56,8 +53,6 @@ class InvestorUpdateRequest(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None
-    status: Optional[str] = None  # ACTIVE, INACTIVE
-    is_active: Optional[bool] = None
     new_password: Optional[str] = None
 
 
@@ -66,7 +61,6 @@ class InvestmentAdminResponse(ORMBase):
     id: int
     investor_id: int
     investor_name: str
-    restaurant_name: str
     investment_amount: float
     investment_date: datetime
     status: str
@@ -77,7 +71,6 @@ class InvestmentAdminResponse(ORMBase):
 
 class InvestmentCreateRequest(BaseModel):
     investor_id: int = Field(..., gt=0)
-    restaurant_name: str = Field(..., min_length=2, max_length=255)
     investment_amount: float = Field(..., gt=0.0)
     investment_date: Optional[datetime] = None
     status: Literal["ACTIVE", "COMPLETED", "CANCELLED"] = "ACTIVE"
@@ -85,7 +78,6 @@ class InvestmentCreateRequest(BaseModel):
 
 
 class InvestmentUpdateRequest(BaseModel):
-    restaurant_name: Optional[str] = None
     investment_amount: Optional[float] = Field(default=None, gt=0.0)
     status: Optional[Literal["ACTIVE", "COMPLETED", "CANCELLED"]] = None
     notes: Optional[str] = None
@@ -97,6 +89,56 @@ class TransactionCreateRequest(BaseModel):
     transaction_date: Optional[datetime] = None
     reference: Optional[str] = None
     notes: Optional[str] = None
+
+
+class ExpenseCreateRequest(BaseModel):
+    description: str = Field(..., min_length=2, max_length=500)
+    amount: float = Field(..., ge=0.01)
+    expense_date: date
+
+
+class ExpenseResponse(ORMBase):
+    id: int
+    description: str
+    amount: float
+    expense_date: date
+    created_at: datetime
+
+
+class ProfitDistributionRequest(BaseModel):
+    start_date: date
+    end_date: date
+
+    @model_validator(mode="after")
+    def validate_period(self):
+        if self.end_date < self.start_date:
+            raise ValueError("End date must be on or after start date.")
+        return self
+
+
+class InvestorProfitAllocation(BaseModel):
+    investor_id: int
+    investor_name: str
+    investor_investment: float
+    ownership_percent: float
+    investor_profit: float
+
+
+class ProfitDistributionPreview(BaseModel):
+    start_date: date
+    end_date: date
+    net_revenue: float
+    total_expenses: float
+    estimated_profit: float
+    distributable_profit: float
+    total_investment: float
+    can_distribute: bool
+    investors: List[InvestorProfitAllocation]
+
+
+class ProfitDistributionResponse(ProfitDistributionPreview):
+    distribution_id: int
+    distributed_at: datetime
 
 
 # --- Menu Management ---

@@ -51,7 +51,6 @@ def get_profile(db: Session, current_user: User) -> InvestorProfileResponse:
         email=email,
         phone=investor.phone,
         address=investor.address,
-        status=investor.status or "ACTIVE",
         created_at=current_user.created_at,
     )
 
@@ -75,7 +74,6 @@ def get_investments(db: Session, current_user: User) -> List[InvestmentResponse]
         resp = InvestmentResponse(
             id=inv.id,
             investor_id=inv.investor_id,
-            restaurant_name=inv.restaurant_name,
             investment_amount=inv.investment_amount,
             investment_date=inv.investment_date,
             status=inv.status,

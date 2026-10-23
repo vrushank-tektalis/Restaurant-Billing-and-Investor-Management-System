@@ -1,0 +1,228 @@
+/* Modal Overlay */
+.receipt-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: color-mix(in srgb, var(--color-text) 48%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(2px);
+}
+
+/* Modal Content Card */
+.receipt-modal-container {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--shadow-popover);
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Printable Receipt Content */
+.receipt-paper {
+  padding: 2rem;
+  overflow-y: auto;
+  font-family: 'Courier New', Courier, monospace, sans-serif;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.receipt-header {
+  text-align: center;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px dashed var(--color-border);
+  padding-bottom: 1rem;
+}
+
+.receipt-restaurant-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+  color: var(--color-text);
+  letter-spacing: 0.5px;
+}
+
+.receipt-subtitle {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.receipt-meta {
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  border-bottom: 1px dashed var(--color-border);
+  padding-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.receipt-meta-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.receipt-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+}
+
+.receipt-items-table th {
+  border-bottom: 1px dashed var(--color-text-muted);
+  padding: 0.4rem 0.2rem;
+  text-align: left;
+  font-weight: 700;
+}
+
+.receipt-items-table th:last-child,
+.receipt-items-table td:last-child {
+  text-align: right;
+}
+
+.receipt-items-table th.th-qty,
+.receipt-items-table td.td-qty {
+  text-align: center;
+}
+
+.receipt-items-table th.th-price,
+.receipt-items-table td.td-price {
+  text-align: right;
+}
+
+.receipt-items-table td {
+  padding: 0.45rem 0.2rem;
+  border-bottom: 1px dotted var(--color-border);
+}
+
+.receipt-summary-section {
+  border-top: 1px dashed var(--color-text-muted);
+  padding-top: 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.receipt-summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.receipt-summary-total {
+  font-size: 1.15rem;
+  font-weight: 800;
+  border-top: 2px solid var(--color-text);
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.receipt-footer-text {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 1.25rem;
+  border-top: 1px dashed var(--color-border);
+  padding-top: 0.75rem;
+}
+
+/* Modal Actions (Buttons) */
+.receipt-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+}
+
+.btn-print {
+  flex: 1;
+  background-color: var(--color-accent);
+  color: var(--color-accent-contrast);
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-print:hover {
+  background-color: var(--color-accent-text);
+}
+
+.btn-close-modal {
+  flex: 1;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-close-modal:hover {
+  background-color: var(--color-tint-2);
+}
+
+/* Print Specific Rules: Hide everything except the receipt */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .receipt-modal-backdrop {
+    position: static;
+    background: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: auto;
+  }
+  .receipt-modal-container {
+    box-shadow: none;
+    border: none;
+    max-width: 100%;
+    max-height: none;
+    overflow: visible;
+  }
+  .receipt-paper,
+  .receipt-paper * {
+    visibility: visible;
+  }
+  .receipt-paper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 10mm;
+  }
+  .receipt-actions,
+  .no-print {
+    display: none !important;
+  }
+}

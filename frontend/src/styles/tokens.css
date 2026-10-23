@@ -1,0 +1,66 @@
+:root {
+  color-scheme: light dark;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --radius-pill: 999px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent);
+  --color-brand-arrow: #C42424;
+  --color-brand-backing: light-dark(transparent, #EDEDED);
+}
+
+:root,
+:root[data-preset="linen"] {
+  --color-bg: light-dark(#F4F2EE, #161412);
+  --color-surface: light-dark(#FFFFFF, #1F1C19);
+  --color-text: light-dark(#25231F, #F1EDE6);
+  --color-text-muted: light-dark(#4A463F, #C4BDB3);
+  --color-border: light-dark(#DAD5CC, #37322C);
+  --color-accent: light-dark(#2E6B45, #7FC79A);
+  --color-accent-contrast: light-dark(#FFFFFF, #0C2416);
+  --color-accent-text: light-dark(#255A3A, #9AD5B0);
+  --color-tint-1: light-dark(#F6E1D3, #37261D);
+  --color-tint-2: light-dark(#DDEBD9, #1F3324);
+  --color-tint-3: light-dark(#E9E3F1, #2A2533);
+  --color-tint-4: light-dark(#F7EBC8, #332B14);
+  --color-danger: light-dark(#B3201C, #F08A85);
+  --color-danger-contrast: light-dark(#FFFFFF, #2B0D0C);
+  --color-danger-text: light-dark(#9C1A16, #F5A19D);
+  --color-danger-bg: light-dark(#F8E2DE, #3D1E1B);
+  --color-success: light-dark(#2E6B45, #7FC79A);
+  --color-success-bg: light-dark(#DDEBD9, #1F3324);
+  --color-warning: light-dark(#8A5600, #E8B45A);
+  --color-warning-bg: light-dark(#F7EBC8, #3B3218);
+  --font-sans: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-size-1: 14px;
+  --font-size-2: 16px;
+  --font-size-3: 18px;
+  --font-size-4: 24px;
+  --font-size-5: 32px;
+  --font-size-6: 44px;
+  --font-weight-display: 700;
+  --line-height: 1.55;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --shadow-card: none;
+  --shadow-popover: 0 16px 40px -12px rgba(40, 30, 20, 0.28);
+  --card-border: 1px solid transparent;
+  --card-inset: none;
+  --control-height: 48px;
+  --card-padding: 24px;
+  --row-height: 56px;
+  --grid-gap: 20px;
+  --icon-stroke: 1.75;
+  --icon-linecap: round;
+}
+
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }

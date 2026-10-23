@@ -1,0 +1,29 @@
+
+# Python virtual environments
+.venv/
+venv/
+
+# Python temporary files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Environment variables / secrets
+.env
+.env.*
+
+# Frontend dependencies and build files
+node_modules/
+dist/
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db

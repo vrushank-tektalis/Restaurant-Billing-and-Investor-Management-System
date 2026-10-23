@@ -133,6 +133,49 @@ Frontend starts at: **http://localhost:5173**
 
 ---
 
+## 🚂 Deploy on Railway
+
+This repository runs as one Railway web service: the root `Dockerfile` builds
+the React app and serves it from FastAPI. Add a Railway MySQL service for
+persistent application data.
+
+1. Push this repository to GitHub. In Railway, choose **New Project → Deploy
+   from GitHub repo** and select the repository. Keep the service root directory
+   at `/`; Railway will detect the root `Dockerfile`.
+2. Add a **MySQL** service to the same Railway project and wait for it to be
+   available.
+3. In the web service's **Variables**, use **Add Reference** to add the MySQL
+   service variables `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD`, and
+   `MYSQLDATABASE`.
+4. Add a private `JWT_SECRET` variable. Generate a strong value on your computer:
+
+   ```powershell
+   python -c "import secrets; print(secrets.token_urlsafe(48))"
+   ```
+
+5. Before seeding the database, add private variables `SEED_ADMIN_PASSWORD`,
+   `SEED_CASHIER_PASSWORD`, and `SEED_INVESTOR_PASSWORD`. Use strong passwords;
+   the investor password is shared by the generated demo investor accounts.
+6. Deploy the web service. In its settings, set the healthcheck path to
+   `/health`, and generate a public domain under **Networking**.
+7. In the web service's Railway shell, run this **once** to create the demo
+   accounts and sample data:
+
+   ```bash
+   python -m app.seed
+   ```
+
+   **Warning:** seeding deletes and recreates all application tables. Do not run
+   it again if you need to preserve current database data.
+8. Open the generated domain and sign in as `admin@restaurant.com` using the
+   `SEED_ADMIN_PASSWORD` value you set. Remove demo data/accounts before using
+   the deployment with real restaurant data.
+
+The service listens on Railway's injected `PORT` and fails startup if Railway's
+database cannot be reached instead of switching to temporary SQLite storage.
+
+---
+
 ## 🚀 Quick Start Reference
 
 | Terminal | Command |

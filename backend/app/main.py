@@ -1,9 +1,12 @@
 import logging
+import os
 import traceback
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import inspect, text
 
 from app.database.connection import engine, Base
@@ -34,6 +37,9 @@ def init_database() -> None:
                 )
         logger.info("Database tables verified/created successfully.")
     except Exception as exc:
+        if os.getenv("RAILWAY_ENVIRONMENT_NAME"):
+            logger.exception("Database initialization failed.")
+            raise
         logger.warning(
             f"Database connection or initialization encountered an error: {exc}. "
             "Please ensure MySQL is running and DB credentials in .env are correct."
@@ -77,9 +83,13 @@ app.include_router(billing_router)
 app.include_router(investor_router)
 app.include_router(admin_router)
 
+frontend_dist = Path(__file__).resolve().parents[2] / "frontend" / "dist"
 
 @app.get("/", tags=["health"])
 def root():
+    index_file = frontend_dist / "index.html"
+    if index_file.is_file():
+        return FileResponse(index_file)
     return {
         "status": "ok",
         "app": "Restaurant Investor & Billing Management System",
@@ -91,3 +101,7 @@ def root():
 @app.get("/health", tags=["health"])
 def health_check():
     return {"status": "healthy"}
+
+
+if frontend_dist.is_dir():
+    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")

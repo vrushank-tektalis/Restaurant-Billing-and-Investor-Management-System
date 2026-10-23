@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
-from urllib.parse import quote_plus
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
+from sqlalchemy.engine import URL, make_url
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 # Load environment variables from backend/.env if present, otherwise system env
@@ -12,38 +12,31 @@ if env_path.exists():
 else:
     load_dotenv()
 
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = os.getenv("DB_PORT", "3306")
-DB_USER = os.getenv("DB_USER", "root")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "")
-DB_NAME = os.getenv("DB_NAME", "restaurant_db")
+DB_NAME = os.getenv("MYSQLDATABASE") or os.getenv("DB_NAME", "restaurant_db")
+RAILWAY_ENVIRONMENT = os.getenv("RAILWAY_ENVIRONMENT_NAME")
+MYSQL_URL = os.getenv("MYSQL_URL") or os.getenv("DATABASE_URL")
 
-# URL encode password to handle special characters securely
-encoded_password = quote_plus(DB_PASSWORD) if DB_PASSWORD else ""
-
-if encoded_password:
-    DATABASE_URL = f"mysql+pymysql://{DB_USER}:{encoded_password}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    SERVER_URL = f"mysql+pymysql://{DB_USER}:{encoded_password}@{DB_HOST}:{DB_PORT}"
+if MYSQL_URL:
+    parsed_database_url = make_url(MYSQL_URL)
+    if parsed_database_url.drivername in ("mysql", "mysql+pymysql"):
+        DATABASE_URL = parsed_database_url.set(drivername="mysql+pymysql")
+    else:
+        raise RuntimeError("The configured database URL must use MySQL.")
 else:
-    DATABASE_URL = f"mysql+pymysql://{DB_USER}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    SERVER_URL = f"mysql+pymysql://{DB_USER}@{DB_HOST}:{DB_PORT}"
+    DATABASE_URL = URL.create(
+        "mysql+pymysql",
+        username=os.getenv("MYSQLUSER") or os.getenv("DB_USER", "root"),
+        password=os.getenv("MYSQLPASSWORD") or os.getenv("DB_PASSWORD") or None,
+        host=os.getenv("MYSQLHOST") or os.getenv("DB_HOST", "localhost"),
+        port=int(os.getenv("MYSQLPORT") or os.getenv("DB_PORT", "3306")),
+        database=DB_NAME,
+    )
 
 
 def create_resilient_engine():
     """
-    Attempts to connect to MySQL and ensure the database exists.
-    If MySQL server is unavailable, falls back to local SQLite to ensure the application runs.
+    Connect to MySQL, using local SQLite only for non-Railway development.
     """
-    # 1. Attempt to ensure DB exists in MySQL
-    try:
-        temp_eng = create_engine(SERVER_URL, pool_pre_ping=True)
-        with temp_eng.connect() as conn:
-            conn.execute(text(f"CREATE DATABASE IF NOT EXISTS `{DB_NAME}`"))
-            conn.commit()
-    except Exception:
-        pass
-
-    # 2. Attempt to connect to the target database
     try:
         eng = create_engine(
             DATABASE_URL,
@@ -55,6 +48,9 @@ def create_resilient_engine():
             pass
         return eng
     except Exception as exc:
+        if RAILWAY_ENVIRONMENT:
+            raise RuntimeError("Could not connect to the configured Railway MySQL database.") from exc
+
         # Fallback to local SQLite file
         sqlite_file = Path(__file__).resolve().parent.parent.parent / "restaurant_local.db"
         sqlite_url = f"sqlite:///{sqlite_file}"

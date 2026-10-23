@@ -14,7 +14,11 @@ from app.database.connection import get_db
 from app.auth.models import User
 
 # Load JWT settings
-JWT_SECRET = os.getenv("JWT_SECRET", "supersecretjwtkey_restaurant_system_2026")
+JWT_SECRET = os.getenv("JWT_SECRET", "")
+if not JWT_SECRET:
+    if os.getenv("RAILWAY_ENVIRONMENT_NAME"):
+        raise RuntimeError("Set a private JWT_SECRET in the Railway service variables.")
+    JWT_SECRET = "supersecretjwtkey_restaurant_system_2026"
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "480"))
 

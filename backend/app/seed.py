@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import random
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -60,6 +61,22 @@ MENU_GROUPS = {
 }
 
 def seed_database() -> None:
+    railway_deploy = bool(os.getenv("RAILWAY_ENVIRONMENT_NAME"))
+    seed_passwords = {
+        "admin": os.getenv("SEED_ADMIN_PASSWORD"),
+        "cashier": os.getenv("SEED_CASHIER_PASSWORD"),
+        "investor": os.getenv("SEED_INVESTOR_PASSWORD"),
+    }
+    if railway_deploy and not all(seed_passwords.values()):
+        raise RuntimeError(
+            "Set SEED_ADMIN_PASSWORD, SEED_CASHIER_PASSWORD, and "
+            "SEED_INVESTOR_PASSWORD before seeding on Railway."
+        )
+
+    admin_password = seed_passwords["admin"] or "Admin@123"
+    cashier_password = seed_passwords["cashier"] or "Cashier@123"
+    investor_password = seed_passwords["investor"] or "Investor@123"
+
     print("Dropping and recreating all application tables...")
     Base.metadata.drop_all(bind=engine)
 
@@ -73,21 +90,21 @@ def seed_database() -> None:
             User(
                 name="Restaurant Owner",
                 email="admin@restaurant.com",
-                password_hash=hash_password("Admin@123"),
+                password_hash=hash_password(admin_password),
                 role="ADMIN",
                 is_active=True,
             ),
             User(
                 name="Rohan Sharma (Cashier)",
                 email="cashier1@restaurant.com",
-                password_hash=hash_password("Cashier@123"),
+                password_hash=hash_password(cashier_password),
                 role="CASHIER",
                 is_active=True,
             ),
             User(
                 name="Pooja Verma (Cashier)",
                 email="cashier2@restaurant.com",
-                password_hash=hash_password("Cashier@123"),
+                password_hash=hash_password(cashier_password),
                 role="CASHIER",
                 is_active=True,
             ),
@@ -96,7 +113,7 @@ def seed_database() -> None:
             users.append(User(
                 name=name,
                 email=f"investor{index}@restaurant.com",
-                password_hash=hash_password("Investor@123"),
+                password_hash=hash_password(investor_password),
                 role="INVESTOR",
                 is_active=True,
             ))
@@ -209,9 +226,15 @@ def seed_database() -> None:
         print(f"Investments: {len(investments)}")
         print(f"Investment transactions: {len(transactions)}")
         print(f"Orders: {len(orders)} (with generated order lines)")
-        print("Admin login: admin@restaurant.com / Admin@123")
-        print("Cashier login: cashier1@restaurant.com / Cashier@123")
-        print("Investor login: investor1@restaurant.com / Investor@123")
+        if railway_deploy:
+            print("Seeded admin login: admin@restaurant.com")
+            print("Seeded cashier login: cashier1@restaurant.com")
+            print("Seeded investor login: investor1@restaurant.com")
+            print("Passwords are configured in Railway service variables.")
+        else:
+            print(f"Admin login: admin@restaurant.com / {admin_password}")
+            print(f"Cashier login: cashier1@restaurant.com / {cashier_password}")
+            print(f"Investor login: investor1@restaurant.com / {investor_password}")
     except Exception:
         db.rollback()
         raise
